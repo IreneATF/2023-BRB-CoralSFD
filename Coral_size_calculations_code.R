@@ -1,6 +1,6 @@
 prop <- function(l,w,h,shape = 0,fraction = 1,pm = 0) {
 	if (shape == 1) {
-		cat("\nThe geometric shape is", fraction, "ellipsoid.")
+		cat("\n\nThe geometric shape is", fraction, "ellipsoid.")
 
 		dimen <- c(l,w,h)
 		o_dim <- dimen[order(dimen,decreasing = TRUE, na.last = TRUE)]  ## Ordering dimensions so a >= b >= c
@@ -41,15 +41,47 @@ prop <- function(l,w,h,shape = 0,fraction = 1,pm = 0) {
 		a_ell_x(a,b,c)
 		
 	} else if (shape == 2) {
-		print("plate")
-
+	  cat("\n\nThe geometric shape is", fraction, "plate / flat.")
+	  
+	  v_plt <- function(l,w,h) {    ## Calculating the volume of a plate (prism)
+	    vol <- fraction*l*w*h
+	    cat("\nVolume is", vol,"cm3;")			
+	  }
+	  v_plt(l,w,h)
+	  
+	  a_plt <- function(l,w,h) {    ## Calculating the area of a plate (top rectangle)
+	    area <- l*w
+	    cat("\nSurface area is", area, "cm3;")
+	    live_tissue <- area*((100-pm)/100)
+	    cat("\nConsidering", pm, "% partial mortality,", live_tissue, "cm2 is live tissue.")
+	  }
+	  a_plt(l,w,h)
+	    
 	} else if (shape == 3) {
-		print(cylinder)
-
+	  cat("\n\nThe geometric shape is", fraction, "cylinder")
+	  
+	  dimen <- c(l,w)
+	  r <- max(dimen, na.rm = FALSE)/2
+	  
+	  v_cyl <- function(r,h) {    ## Calculating the volume of a plate (prism)
+	    vol <- pi*r^2*h
+	    cat("\nVolume is", vol,"cm3;")			
+	  }
+	  v_cyl(r,h)
+	  
+	  a_cyl <- function(r,h) {    ## Calculating the area of a cylinder (except bottom circle)
+	    area <- 2*pi*r*h + pi*r^2 
+	    cat("\nSurface area is", area, "cm3;")
+	    live_tissue <- area*((100-pm)/100)
+	    cat("\nConsidering", pm, "% partial mortality,", live_tissue, "cm2 is live tissue.")
+	  }
+	  a_cyl(r,h)
+	  
 	} else if (shape == 4) {
-		print("complex")
+		cat("\n\nThe geometric shape is complex, we must decompose into multiple geometric shapes.")
 
 	} else {
-		print("Specify shape")
+		cat("Specify shape")
 	}
 }
+
