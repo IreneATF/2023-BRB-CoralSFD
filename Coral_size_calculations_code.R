@@ -1,4 +1,4 @@
-prop <- function(l,w,h,shape = 0,pm = 0,fraction = 1) {
+prop <- function(l,w,h,shape = 0,fraction = 1,pm = 0) {
 	if (shape == 1) {
 		cat("\nThe geometric shape is", fraction, "ellipsoid.")
 
@@ -9,20 +9,36 @@ prop <- function(l,w,h,shape = 0,pm = 0,fraction = 1) {
 		b <- 1/2*o_dim[2]
 		c <- 1/2*o_dim[3]
     cat("\nParameters are a =", a, "cm, b =", b, "cm, and c =", c,"cm;")
-		v_ell <- function(a,b,c) {    ## Calculating the volume of an ellipsoid
+		
+    v_ell <- function(a,b,c) {    ## Calculating the volume of an ellipsoid
 			vol <- fraction*(4/3*pi*a*b*c)
 			cat("\nVolume is", vol,"cm3;")			
 		}
 		v_ell(a,b,c)
 		
-		a_ell <- function(a,b,c) {    ## Calculating the surface area of an ellipsoid
-			p <- 1.6075
-			area <- fraction*(4*pi*(((a^p*b^p + a^p*c^p + b^p*c*p)/3)^(1/p))) ## best approx with error 1%, for precise formula need numerical computation of elliptic integrals 
-			live_tissue <- area*((100-pm)/100)
-			cat("\nSurface area is", area,"cm2;")
-			cat("\nConsidering", pm, "% partial mortality,", live_tissue, "cm2 is live tissue.")
+		a_ell_x <- function(a,b,c) {
+		  
+		  phi <- acos(c/a)
+		  k <- sqrt((a^2*(b^2-c^2))/(b^2*(a^2-c^2)))
+		  
+		  f_integrand <- function(t) {1/sqrt(1-k^2*sin(t)^2)}
+		  Fint <- integrate(f_integrand, 0, phi)
+		  # print(Fint)
+		  Fnum <- Fint[[1]]
+		  
+		  e_integrand <- function(t) {sqrt(1-k^2*sin(t)^2)}
+		  Eint <- integrate(e_integrand, 0, phi)
+		  # print(Eint)
+		  Enum <- Eint[[1]]
+		  
+		  area_x <- (2*pi*c^2)+((2*pi*a*b)/sin(phi))*(Enum*sin(phi)^2+Fnum*cos(phi)^2)
+		  area_x_f <- fraction*area_x
+		  cat("\nThe surface area is", area_x_f, "cm2;")
+		
+		  live_tissue <- area_x_f*((100-pm)/100)
+		  cat("\nConsidering", pm, "% partial mortality,", live_tissue, "cm2 is live tissue.")
 		}
-		a_ell(a,b,c)
+		a_ell_x(a,b,c)
 		
 	} else if (shape == 2) {
 		print("plate")
