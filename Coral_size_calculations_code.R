@@ -1,8 +1,10 @@
 ## This code reads sampling data sheet for coral SFD and returns area
 
-cat("\014")
+##### CODE ##### 
 
 coral.prop <- function() {
+
+cat("\014")
 
 setwd("C:/Users/irene/Documents/QES Program/CODE/Coral_properties")
 data <- as.data.frame(read.csv("SCTL_sampling_sheet.csv"), ncol = 17)
@@ -78,6 +80,7 @@ for (x in 1:rows){
     SCTLDm_sub2 <- as.numeric(obs_same.colony$SCTLD.Mortality)
     
     SCTLD.mortality <- (area_sub1*SCTLDm_sub1+area_sub2*SCTLDm_sub2)/(area_sub1+area_sub2)
+    SCTLD.mortality <- round(SCTLD.mortality, digits = 2)
     
     if (obs_same.colony$SCTLD.Presence == TRUE) {
       SCTLD <- TRUE
@@ -114,11 +117,15 @@ prop <- transform(prop, Observation = as.numeric(Observation), Transect = as.num
                   Surface.Area.cm2 = as.numeric(Surface.Area.cm2), Partial.Mortality = as.numeric(Partial.Mortality),
                   SCTLD.Mortality = as.numeric(SCTLD.Mortality), SCTLD.Presence = as.logical(SCTLD.Presence))
 
-prop <- prop[order(prop$Transect, prop$Quadrat, prop$Species.CODE, prop$Surface.Area.cm2)]
-prop
+bad <- is.na(prop$Species)
+prop <- data.frame(prop[!bad,])
+prop_o <- prop[order(prop$Transect, prop$Quadrat, prop$Species.CODE, prop$Surface.Area.cm2),]
+prop <- prop_o
+##prop
 
 library(readr)
 write_csv(prop, "C:/Users/irene/Documents/QES Program/CODE/Coral_properties/Coral_properties.csv")
+
 }
 
 source("Coral_size_calculations_code.R")
