@@ -14,6 +14,11 @@ ellipsoid <- function(length,width,height) {
   b <- 1/2*o_dim[2]
   c <- 1/2*o_dim[3]
 
+  if (a == b && a == c) {
+    area <- 1/2*(4*pi*a^2)
+    area
+    
+  }else{
   ##cat("\nParameters are a =", a, "cm, b =", b, "cm, and c =", c,"cm;")
 
   ##vol <- fraction*(4/3*pi*a*b*c)  ## Calculating the volume of an ellipsoid
@@ -31,7 +36,7 @@ ellipsoid <- function(length,width,height) {
 
   area_x <- (2*pi*c^2)+((2*pi*a*b)/sin(phi))*(Enum*sin(phi)^2+Fnum*cos(phi)^2)
   area <- 0.5*area_x
-  area
+  area}
   ## cat("\nThe surface area is", area, "cm2;")
   ## live_tissue <- area*((100-pm)/100)
   ## cat("\nConsidering", pm, "% partial mortality,", live_tissue, "cm2 is live tissue.\n")
