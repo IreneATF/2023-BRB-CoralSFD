@@ -12,7 +12,7 @@ rows <- nrow(data)
 
 prop <- data.frame(Observation = numeric(), Transect = numeric(),Quadrat = numeric(), 
                    N.DMS = numeric(), W.DMS = numeric(), Species.CODE = character(),
-                   Depth.m = numeric(), Surface.Area.cm2 = numeric(),
+                   Depth.m = numeric(), Surface.Area.cm2 = numeric(), Surface.Area.Log = numeric(),
                    Partial.Mortality = numeric(), SCTLD.Mortality = numeric(),
                    SCTLD.Presence = logical(), Bleached.Other.Disease = character(), 
                    Comments = character())
@@ -38,18 +38,25 @@ for (x in 1:rows){
   
   ## Calculating area
 	if (shape == 1) {
-    area <- round(ellipsoid(length,width,height))
+    if (is.na(length) == TRUE || is.na(width) == TRUE || is.na(width)) {
+      str(prop)
+      stop("Missing values")
+    }
+	  area <- round(ellipsoid(length,width,height))
+	  area_log <- log10(area)    
 	  
 	}else if (shape == 2) {
 	  area <- round(ellipse(length,width,height))
+	  area_log <- log10(area)    
 	  
 	}else if (shape == 3) {
 	  area <- round(cylinder.ell(length,width,height))
+	  area_log <- log10(area)    
 	  
 	}else {cat("Specify shape\n")}
   
   properties <- c(obs,obs_h$Transect, obs_h$Quadrat, obs_h$N.DMS, obs_h$W.DMS, 
-                  species, obs_h$Depth.m, area, partial.mortality, 
+                  species, obs_h$Depth.m, area, area_log, partial.mortality, 
                   SCTLD.mortality, SCTLD, BOD, obs_h$Comments)
   
   ## For complex shapes
@@ -67,6 +74,7 @@ for (x in 1:rows){
     area_sub1 <- area
     area_sub2 <- as.numeric(obs_same.colony$Surface.Area.cm2)
     area <- area_sub1 + area_sub2
+    area_log <- log10(area)    
     
     ## Partial Mortality
     pm_sub1 <- partial.mortality
@@ -101,9 +109,9 @@ for (x in 1:rows){
     
     ## New properties 
     properties <- c(obs,obs_h$Transect, obs_h$Quadrat, obs_h$N.DMS, obs_h$W.DMS, 
-                    species, obs_h$Depth.m, area, partial.mortality, 
+                    species, obs_h$Depth.m, area, area_log, partial.mortality, 
                     SCTLD.mortality, SCTLD, BOD, Comments)
-    prop[number_same.colony,] <- c(NA, NA, NA, NA, NA, NA, NA, NA, 
+    prop[number_same.colony,] <- c(NA, NA, NA, NA, NA, NA, NA, NA, NA, 
                                    NA, NA, NA, NA, NA)
   }
   
@@ -114,7 +122,8 @@ for (x in 1:rows){
 prop <- transform(prop, Observation = as.numeric(Observation), Transect = as.numeric(Transect),
                   Quadrat = as.numeric(Quadrat), N.DMS = as.numeric(N.DMS), 
                   W.DMS = as.numeric(W.DMS), Depth.m = as.numeric(Depth.m), 
-                  Surface.Area.cm2 = as.numeric(Surface.Area.cm2), Partial.Mortality = as.numeric(Partial.Mortality),
+                  Surface.Area.cm2 = as.numeric(Surface.Area.cm2), Surface.Area.Log = as.numeric(Surface.Area.Log), 
+                  Partial.Mortality = as.numeric(Partial.Mortality),
                   SCTLD.Mortality = as.numeric(SCTLD.Mortality), SCTLD.Presence = as.logical(SCTLD.Presence))
 
 bad <- is.na(prop$Species)
@@ -130,3 +139,4 @@ write_csv(prop, "C:/Users/irene/Documents/QES Program/CODE/Coral_properties/Cora
 
 source("Coral_size_calculations_code.R")
 coral.prop()
+
