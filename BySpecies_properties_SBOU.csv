@@ -1,0 +1,5 @@
+Observation,Transect,Quadrat,N.DMS,W.DMS,Species.CODE,Depth.m,Surface.Area.cm2,Surface.Area.Log,Partial.Mortality,SCTLD.Mortality,SCTLD.Presence,Bleached.Other.Disease,Comments
+128,5,2,13.190947,-59.641435,SBOU,1,24,1.380211242,1,0,FALSE,BL,Why record if all dead for a long time ?
+124,5,2,13.190947,-59.641435,SBOU,1,44,1.643452676,1,0,FALSE,BL,NA
+242,7,4,13.191395,-59.641638,SBOU,3.2,106,2.025305865,0,0,FALSE,F,NA
+174,7,5,13.191463,-59.641816,SBOU,5,135,2.130333768,0,0,FALSE,F,NA
