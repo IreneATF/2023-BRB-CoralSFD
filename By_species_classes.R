@@ -21,28 +21,31 @@ by.species.classes <- function() {
   library(plyr)
   library(moments)
   library(EnvStats)
+  library(DescTools)
   
-  species.list <- c("A. agaricites", "A. humilis", "C. natans", 
+  species.list <- c("A. agaricites", "A. humilis", "C. natans", "D. cylindrus",
                     "D. labyrinthiformis", "D. stokesii", "M. cavernosa", "Meandrina spp.",
                     "O. annularis", "O. faveolata", "O. franksi", 
                     "P. astreoides", "P. clivosa", "P. strigosa",
                     "S. bournoni", "S. intersepta", "S. siderea")
   color.vector <- c("red", "coral", "darkorange4", "orange", "gold", "yellow", "darkolivegreen2",
-                    "green", "seagreen", "cyan","blue", "dodgerblue", "slategray1", 
+                    "green", "seagreen", "aquamarine", "cyan","blue", "dodgerblue", "slategray1", 
                     "purple3", "magenta", "hotpink1")
   
-  byspecies.stat <- data.frame(Species.CODE = character(), Species.Name = character(), N.Observations = integer(), 
-                                 Mean = numeric(), Median = numeric(), Geometric.mean = numeric(), Q95 = numeric(), 
-                                 Standard.Deviation = numeric(), CV = numeric(),
-                                 Skewness = numeric(), Kurtosis = numeric())
+  byspecies.stat <- data.frame(Species.CODE = character(), Species.Name = character(), 
+                               Geometric.mean = numeric(), Skewness = numeric(), 
+                               Kurtosis = numeric(), Q95 = numeric(), Standard.Deviation = numeric(), 
+                               CV = numeric(), Pnorm = numeric(), N.Observations = integer())
+  ## byspecies.count <- data.frame(Species.CODE = character(), Species.Name = character(),
+                                ## Bin.1 = numeric(), Bin.2 = numeric(), Bin.3 = numeric(), 
+                                ## Bin.4 = numeric(), Bin.5 = numeric(), Bin.6 = numeric(), 
+                                ## Bin.7 = numeric(), Bin.8 = numeric(), Bin.9 = numeric(), 
+                                ## Bin.10 = numeric(), Bin.11 = numeric(), Bin.12 = numeric(),
+                                ## Bin.13 = numeric(), Bin.14 = numeric(), Bin.15 = numeric(),
+                                ## Bin.16 = numeric(), Bin.17 = numeric(), Bin.18 = numeric(),
+                                ## Bin.19 = numeric(), Bin.20 = numeric())
                        
   for (x in 1:n.species) { 
-    # byspecies.prop <- data.frame(Observation = numeric(), Transect = numeric(),Quadrat = numeric(), 
-                               #N.DMS = numeric(), W.DMS = numeric(), Species.CODE = character(),
-                               #Depth.m = numeric(), Surface.Area.cm2 = numeric(), 
-                               #Surface.Area.Log = numeric(), Partial.Mortality = numeric(), 
-                               #SCTLD.Mortality = numeric(), SCTLD.Presence = logical(), 
-                               #Bleached.Other.Disease = character(), Comments = character())
     species <- as.character(names(by.species[x]))
     species.data <- data.frame(by.species[species])
     colnames(species.data) <- c("Observation", "Transect", "Quadrat", "N.DMS", 
@@ -51,18 +54,6 @@ by.species.classes <- function() {
                                  "SCTLD.Mortality", "SCTLD.Presence", 
                                  "Bleached.Other.Disease", "Comments")
     species.row <- nrow(species.data)
-    #for (y in 1:species.row) {
-      
-      ## Writing output table for each species
-      #obs_h <- species.data[y,]
-      #area <- as.numeric(obs_h$Surface.Area.cm2)
-      #area_log <- as.numeric(obs_h$Surface.Area.Log)  ## Log transformation
-      #properties <- c(obs_h$Observation,obs_h$Transect, obs_h$Quadrat, obs_h$N.DMS, obs_h$W.DMS, 
-                      #species, obs_h$Depth.m, area, area_log, obs_h$Partial.Mortality, 
-                      #obs_h$SCTLD.Mortality, obs_h$SCTLD.Presence, obs_h$Bleached.Other.Disease, 
-                      #obs_h$Comments)
-      #byspecies.prop[y,] <- properties
-    #}
     
     ## Create .csv file for each species
     file.sub1 <- getwd()
@@ -92,7 +83,14 @@ by.species.classes <- function() {
                                  color="gray25", linetype="dashed", linewidth=0.5) +
                               labs(title = hist.title, x = "log10(Surface area cm2)", y = "Frequency") +
                               theme(plot.title = element_text(size=12), axis.text=element_text(size=10))
+    
     specie.histogram
+    
+    ## Saving per bin frequency
+    ## specie.histogram.count <- (ggplot_build(specie.histogram)$data[[1]]$count)/species.row                        
+    ## specie.hist.count.v <- c(species, species.list[[x]], c(specie.histogram.count))
+    
+    ## byspecies.count[x,] <- specie.hist.count.v
     
     ## Saving histogram as .pdf 
     hist2.sub1 <- "SFD_"
@@ -103,13 +101,13 @@ by.species.classes <- function() {
     ## Calculating frequency parameters 
     n.obs <- nrow(species.data)        ## Count
     
-    mean.val <- mean(species.log.data)     ## Mean of log transf data
-    median.val <- median(species.log.data)
-    geo.mean.val <- geoMean(species.log.data, na.rm = FALSE) ## geometric mean, antilog of log transformed data, 
+    ## mean.val <- mean(species.log.data)     ## Mean of log transf data
+    ## median.val <- median(species.log.data)
+    geo.mean.val <- geoMean(species.area.data, na.rm = FALSE) ## geometric mean, antilog of log transformed data, 
                                                              ## maximum likelihood estimator of the median of distribution
                                                              ## https://search.r-project.org/CRAN/refmans/EnvStats/html/geoMean.html 
     Q95 <- quantile(species.log.data, 0.95) ## 95th percentile
-    Q95 <- Q95[[1]]
+    Q95 <- 10^Q95[[1]]
     
     std.deviation.val <- sd(species.log.data)  ## Standard deviation and coefficient of variation          
     CV.val <- cv(species.log.data)             ## of log transf data
@@ -117,11 +115,38 @@ by.species.classes <- function() {
     skew.val <- skewness(species.log.data)    ## Calculating skewness on log transf data
     kurt.val <- kurtosis(species.log.data)    ## Calculating kurtosis on log transf data
     
-    statistics <- data.frame(species, species.list[[x]], n.obs, mean.val, median.val, 
-                    geo.mean.val, Q95, std.deviation.val, CV.val, skew.val, kurt.val)
+    if (n.obs < 5) {pnorm <- NA
+    } else { 
+    pnorm <- LillieTest(species.log.data)[[2]]  ## Lilliefors (Kolmogorov-Smirnov) test to determine probability 
+    }                                           ## that data are from normal distribution, p value 
+    
+    statistics <- data.frame(species, species.list[[x]], geo.mean.val, skew.val, 
+                             kurt.val, Q95, std.deviation.val, CV.val, pnorm, n.obs)
+    
     byspecies.stat[x,] <- statistics
     }
   
+  ## Transforming count table and exporting 
+  ## byspecies.count <- transform(byspecies.count, Species.CODE = as.character(Species.CODE), 
+                               ## Species.Name = as.character(Species.Name),
+                               ## Bin.1 = as.numeric(Bin.1), Bin.2 = as.numeric(Bin.2), 
+                               ## Bin.3 = as.numeric(Bin.3), Bin.4 = as.numeric(Bin.4), 
+                               ## Bin.5 = as.numeric(Bin.5), Bin.6 = as.numeric(Bin.6), 
+                               ## Bin.7 = as.numeric(Bin.7), Bin.8 = as.numeric(Bin.8), 
+                               ## Bin.9 = as.numeric(Bin.9), Bin.10 = as.numeric(Bin.10), 
+                               ## Bin.11 = as.numeric(Bin.11), Bin.12 = as.numeric(Bin.12),
+                               ## Bin.13 = as.numeric(Bin.13), Bin.14 = as.numeric(Bin.14), 
+                               ## Bin.15 = as.numeric(Bin.15), Bin.16 = as.numeric(Bin.16), 
+                               ## Bin.17 = as.numeric(Bin.17), Bin.18 = as.numeric(Bin.18),
+                               ## Bin.19 = as.numeric(Bin.19), Bin.20 = as.numeric(Bin.20))
+  ## file3.sub1 <- getwd()
+  ## file3.sub2 <- "/BySpecies_freq_count"
+  ## file3.sub3 <- ".csv"
+  ## file3.v <- c(file3.sub1,file3.sub2,file3.sub3)
+  ## file3.path <- str_flatten(file3.v)
+  ## write_csv(byspecies.count,file3.path)
+  
+
   ## Exporting .csv file with freq parameters for all species observed
   file2.sub1 <- getwd()
   file2.sub2 <- "/BySpecies_freq_parameters"
