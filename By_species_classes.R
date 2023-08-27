@@ -22,9 +22,11 @@ by.species.classes <- function() {
   library(moments)
   library(EnvStats)
   library(DescTools)
+  library(gridExtra)
+  library(cowplot)
   
   species.list <- c("A. agaricites", "A. humilis", "C. natans", "D. cylindrus",
-                    "D. labyrinthiformis", "D. stokesii", "M. cavernosa", "Meandrina spp.",
+                    "D. labyrinthiformis", "D. stokesii", "M. cavernosa", "Meandrinadae spp.",
                     "O. annularis", "O. faveolata", "O. franksi", 
                     "P. astreoides", "P. clivosa", "P. strigosa",
                     "S. bournoni", "S. intersepta", "S. siderea")
@@ -36,6 +38,8 @@ by.species.classes <- function() {
                                Geometric.mean = numeric(), Skewness = numeric(), 
                                Kurtosis = numeric(), Q95 = numeric(), Standard.Deviation = numeric(), 
                                CV = numeric(), Pnorm = numeric(), N.Observations = integer())
+  
+  hlist <- vector(mode='list', length=17)
   ## byspecies.count <- data.frame(Species.CODE = character(), Species.Name = character(),
                                 ## Bin.1 = numeric(), Bin.2 = numeric(), Bin.3 = numeric(), 
                                 ## Bin.4 = numeric(), Bin.5 = numeric(), Bin.6 = numeric(), 
@@ -74,17 +78,25 @@ by.species.classes <- function() {
     hist.sub1 <- "Size-frequency distribution for "
     hist.sub2 <- species.list[[x]]
     hist.title <- str_flatten(c(hist.sub1, hist.sub2))
-    specie.histogram <-  ggplot(species.data, aes(x = species.log.data)) +
-                              geom_histogram(bins = 20, color = "black", fill = fill.color, 
-                                             aes(y = after_stat(count/sum(count)))) + 
-                              scale_x_continuous(breaks = c(0,1,2,3,4,5), limits = c(0,5)) +
-                              scale_y_continuous(labels = percent) + 
-                              geom_vline(aes(xintercept=mean(species.log.data)),
-                                 color="gray25", linetype="dashed", linewidth=0.5) +
-                              labs(title = hist.title, x = "log10(Surface area cm2)", y = "Frequency") +
-                              theme(plot.title = element_text(size=12), axis.text=element_text(size=10))
     
+    scale.factor <- 5/20*1
+    ## ybreaks <- seq(0,100,10)
+    specie.histogram <-  ggplot(species.data, aes(x = species.log.data)) +
+                              
+                              geom_histogram(bins = 20, color = "black", fill = fill.color, 
+                                             aes(y =after_stat(count/sum(count)))) + 
+                              stat_function(
+                                fun = function(x, mean, sd, n) {
+                                  n * dnorm(x = x, mean = mean, sd = sd)
+                                },
+                                args = with(species.data, c(mean = mean(species.log.data), sd = sd(species.log.data), n = scale.factor))) +
+                              scale_x_continuous("log10(Surface area cm2)", breaks = c(0,1,2,3,4,5), limits = c(0,5)) +
+                              scale_y_continuous("Frequency", labels = percent) +
+                              labs(title = hist.title) +
+                              theme(plot.title = element_text(size=12), axis.text=element_text(size=10))
+                            
     specie.histogram
+    hlist[[x]] <- specie.histogram
     
     ## Saving per bin frequency
     ## specie.histogram.count <- (ggplot_build(specie.histogram)$data[[1]]$count)/species.row                        
@@ -96,7 +108,8 @@ by.species.classes <- function() {
     hist2.sub1 <- "SFD_"
     hist2.sub2 <- ".pdf"
     hist2.title <- str_flatten(c(hist2.sub1, species, hist2.sub2))
-    ggsave(specie.histogram, file=hist2.title, width = 6, height = 4, units = "in")
+    ggsave(specie.histogram, file=hist2.title, width = 6, height = 6, units = "in")
+    
     
     ## Calculating frequency parameters 
     n.obs <- nrow(species.data)        ## Count
@@ -155,6 +168,8 @@ by.species.classes <- function() {
   file2.path <- str_flatten(file2.v)
   write_csv(byspecies.stat,file2.path)
   
+  ## Creating grid of all histograms 
+  plot_grid(plotlist = hlist, align = "hv", nrow = 6, ncol = 3)
   }
 
 source("By_species_classes.R")
