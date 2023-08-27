@@ -1,4 +1,4 @@
-## This code splits by species and pools data into size categories
+## This code splits by species, creates histograms and calculates frequency parameters
 
 ##### CODE ##### 
 
@@ -24,6 +24,8 @@ by.species.classes <- function() {
   library(DescTools)
   library(gridExtra)
   library(cowplot)
+  library(magick)
+  library(pdftools)
   
   species.list <- c("A. agaricites", "A. humilis", "C. natans", "D. cylindrus",
                     "D. labyrinthiformis", "D. stokesii", "M. cavernosa", "Meandrinadae spp.",
@@ -38,16 +40,6 @@ by.species.classes <- function() {
                                Geometric.mean = numeric(), Skewness = numeric(), 
                                Kurtosis = numeric(), Q95 = numeric(), Standard.Deviation = numeric(), 
                                CV = numeric(), Pnorm = numeric(), N.Observations = integer())
-  
-  hlist <- vector(mode='list', length=17)
-  ## byspecies.count <- data.frame(Species.CODE = character(), Species.Name = character(),
-                                ## Bin.1 = numeric(), Bin.2 = numeric(), Bin.3 = numeric(), 
-                                ## Bin.4 = numeric(), Bin.5 = numeric(), Bin.6 = numeric(), 
-                                ## Bin.7 = numeric(), Bin.8 = numeric(), Bin.9 = numeric(), 
-                                ## Bin.10 = numeric(), Bin.11 = numeric(), Bin.12 = numeric(),
-                                ## Bin.13 = numeric(), Bin.14 = numeric(), Bin.15 = numeric(),
-                                ## Bin.16 = numeric(), Bin.17 = numeric(), Bin.18 = numeric(),
-                                ## Bin.19 = numeric(), Bin.20 = numeric())
                        
   for (x in 1:n.species) { 
     species <- as.character(names(by.species[x]))
@@ -96,26 +88,17 @@ by.species.classes <- function() {
                               theme(plot.title = element_text(size=12), axis.text=element_text(size=10))
                             
     specie.histogram
-    hlist[[x]] <- specie.histogram
-    
-    ## Saving per bin frequency
-    ## specie.histogram.count <- (ggplot_build(specie.histogram)$data[[1]]$count)/species.row                        
-    ## specie.hist.count.v <- c(species, species.list[[x]], c(specie.histogram.count))
-    
-    ## byspecies.count[x,] <- specie.hist.count.v
     
     ## Saving histogram as .pdf 
     hist2.sub1 <- "SFD_"
     hist2.sub2 <- ".pdf"
     hist2.title <- str_flatten(c(hist2.sub1, species, hist2.sub2))
-    ggsave(specie.histogram, file=hist2.title, width = 6, height = 6, units = "in")
+    ggsave(specie.histogram, file=hist2.title, width = 4.25, height = 4, units = "in")
     
     
     ## Calculating frequency parameters 
     n.obs <- nrow(species.data)        ## Count
     
-    ## mean.val <- mean(species.log.data)     ## Mean of log transf data
-    ## median.val <- median(species.log.data)
     geo.mean.val <- geoMean(species.area.data, na.rm = FALSE) ## geometric mean, antilog of log transformed data, 
                                                              ## maximum likelihood estimator of the median of distribution
                                                              ## https://search.r-project.org/CRAN/refmans/EnvStats/html/geoMean.html 
@@ -139,26 +122,6 @@ by.species.classes <- function() {
     byspecies.stat[x,] <- statistics
     }
   
-  ## Transforming count table and exporting 
-  ## byspecies.count <- transform(byspecies.count, Species.CODE = as.character(Species.CODE), 
-                               ## Species.Name = as.character(Species.Name),
-                               ## Bin.1 = as.numeric(Bin.1), Bin.2 = as.numeric(Bin.2), 
-                               ## Bin.3 = as.numeric(Bin.3), Bin.4 = as.numeric(Bin.4), 
-                               ## Bin.5 = as.numeric(Bin.5), Bin.6 = as.numeric(Bin.6), 
-                               ## Bin.7 = as.numeric(Bin.7), Bin.8 = as.numeric(Bin.8), 
-                               ## Bin.9 = as.numeric(Bin.9), Bin.10 = as.numeric(Bin.10), 
-                               ## Bin.11 = as.numeric(Bin.11), Bin.12 = as.numeric(Bin.12),
-                               ## Bin.13 = as.numeric(Bin.13), Bin.14 = as.numeric(Bin.14), 
-                               ## Bin.15 = as.numeric(Bin.15), Bin.16 = as.numeric(Bin.16), 
-                               ## Bin.17 = as.numeric(Bin.17), Bin.18 = as.numeric(Bin.18),
-                               ## Bin.19 = as.numeric(Bin.19), Bin.20 = as.numeric(Bin.20))
-  ## file3.sub1 <- getwd()
-  ## file3.sub2 <- "/BySpecies_freq_count"
-  ## file3.sub3 <- ".csv"
-  ## file3.v <- c(file3.sub1,file3.sub2,file3.sub3)
-  ## file3.path <- str_flatten(file3.v)
-  ## write_csv(byspecies.count,file3.path)
-  
 
   ## Exporting .csv file with freq parameters for all species observed
   file2.sub1 <- getwd()
@@ -169,7 +132,44 @@ by.species.classes <- function() {
   write_csv(byspecies.stat,file2.path)
   
   ## Creating grid of all histograms 
-  plot_grid(plotlist = hlist, align = "hv", nrow = 6, ncol = 3)
+  
+  panel.11 <- image_read_pdf("SFD_AAGA.pdf")
+  panel.12 <- image_read_pdf("SFD_AHUM.pdf")
+  panel.13 <- image_read_pdf("SFD_CNAT.pdf")
+  panel.21 <- image_read_pdf("SFD_DCYL.pdf")
+  panel.22 <- image_read_pdf("SFD_DLAB.pdf")
+  panel.23 <- image_read_pdf("SFD_DSTO.pdf")
+  panel.31 <- image_read_pdf("SFD_MCAV.pdf")
+  panel.32 <- image_read_pdf("SFD_MMEA.pdf")
+  panel.33 <- image_read_pdf("SFD_OANN.pdf")
+  panel.41 <- image_read_pdf("SFD_OFAV.pdf")
+  panel.42 <- image_read_pdf("SFD_OFRA.pdf")
+  panel.43 <- image_read_pdf("SFD_PAST.pdf")
+  panel.51 <- image_read_pdf("SFD_PCLI.pdf")
+  panel.52 <- image_read_pdf("SFD_PSTR.pdf")
+  panel.53 <- image_read_pdf("SFD_SBOU.pdf")
+  panel.61 <- image_read_pdf("SFD_SINT.pdf")
+  panel.62 <- image_read_pdf("SFD_SSID.pdf")
+  
+  whole1 <- c(panel.11, panel.12, panel.13) %>% 
+    image_append()
+  whole2 <- c(panel.21, panel.22, panel.23) %>% 
+    image_append() 
+  whole3 <- c(panel.31, panel.32, panel.33) %>% 
+    image_append()
+  whole4 <- c(panel.41, panel.42, panel.43) %>% 
+    image_append()
+  whole5 <- c(panel.51, panel.52, panel.53) %>% 
+    image_append()
+  whole6 <- c(panel.61, panel.62) %>% 
+    image_append()
+  
+  whole <- c(whole1, whole2, whole3, whole4, whole5, whole6) %>%
+    image_append(stack = TRUE)
+  whole
+  
+  image_write(whole, path = "All_species_hist.png", format = "png")
+  
   }
 
 source("By_species_classes.R")
